@@ -1,0 +1,40 @@
+Partie 1 : Les données et le chargement du niveau ( Paul)
+
+Contenu : les variables globales, lireLigne(), le tableau niveaux, chargerNiveau() et afficherGrille().
+
+À expliquer :
+
+Les variables globales : grille contient les murs, le joueur et les caisses. objectifs est un second tableau qui retient où sont les objectifs. Il sert parce que le joueur ou une caisse peut passer sur un objectif et le « cacher » dans grille. ligneJoueur et colonneJoueur donnent la position du joueur, et nbMouvements compte les déplacements.
+lireLigne() : c’est un Scanner refait à la main avec System.in.read(), qui lit un caractère à la fois jusqu’au retour à la ligne. On l’a écrit ainsi pour n’avoir aucun import.
+niveaux : chaque niveau est un tableau de String, une par ligne de la grille.
+chargerNiveau() : une double boucle parcourt chaque case du niveau. Un . devient une case libre avec objectifs = true. Un * devient une caisse avec objectifs = true. Un @ donne la position de départ du joueur.
+afficherGrille() : elle affiche * pour une caisse sur objectif et . pour un objectif vide, puis le compteur de mouvements.
+Partie 2 : Les règles du jeu (Valentin)
+
+Contenu : deplacementValide(), peutPousser(), deplacerCaisse(), deplacerJoueur() et partieTerminee().
+
+À expliquer :
+
+deplacementValide() : elle vérifie que la case est dans la grille et que ce n’est pas un mur.
+peutPousser() : elle regarde la case derrière la caisse, qui doit être dans la grille, sans mur et sans autre caisse.
+deplacerCaisse() : elle vide l’ancienne case et met $ sur la nouvelle.
+deplacerJoueur() : c’est la méthode centrale, qui enchaîne les trois étapes suivantes.
+On calcule la case visée avec la direction (dLigne, dColonne).
+Si c’est un mur, on s’arrête. Si c’est une caisse, on teste peutPousser() puis on appelle deplacerCaisse().
+On met à jour la grille et la position, et on fait nbMouvements++.
+Elle retourne true si le joueur a bougé et false sinon.
+partieTerminee() : elle parcourt les objectifs et renvoie false dès qu’un objectif n’a pas de caisse. Sinon, c’est gagné.
+
+Le point à souligner : z, s, q et d ne sont que quatre directions (-1,0), (1,0), (0,-1) et (0,1) envoyées à la même méthode.
+
+Partie 3 : La boucle de jeu et les menus(Yaniss)
+
+Contenu : jouer(), lireEntier(), afficherRegles(), choisirNiveau() et main().
+
+À expliquer :
+
+jouer() : elle charge le niveau, puis boucle tant que le joueur n’a pas quitté (x) et que la partie n’est pas terminée. À chaque tour, elle affiche la grille, lit la commande et la valide (une seule lettre, parmi z, s, q, d, x). Elle appelle ensuite deplacerJoueur() et affiche « Déplacement impossible » si ça échoue. À la fin, elle annonce la victoire et le nombre de mouvements.
+lireEntier() : elle vérifie chaque caractère saisi, ce qui évite les plantages sur une saisie comme « abc ». Elle renvoie -1 si ce n’est pas un nombre.
+choisirNiveau() : elle affiche la liste des niveaux et refuse un numéro inexistant.
+afficherRegles() : elle affiche le texte d’aide.
+main() : elle affiche le menu en boucle (nouvelle partie, choisir un niveau, règles, quitter) et appelle la bonne méthode selon le choix.
