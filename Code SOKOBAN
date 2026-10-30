@@ -1,0 +1,294 @@
+public class Sokoban {
+
+    static char[][] grille;
+    static boolean[][] objectifs;
+    static int ligneJoueur;
+    static int colonneJoueur;
+    static int nbMouvements;
+
+    static String lireLigne() {
+        String texte = "";
+        try {
+            int caractere = System.in.read();
+            while (caractere != -1 && caractere != '\n') {
+                if (caractere != '\r') {
+                    texte = texte + (char) caractere;
+                }
+                caractere = System.in.read();
+            }
+            if (caractere == -1 && texte.length() == 0) {
+                System.exit(0);
+            }
+        } catch (java.io.IOException e) {
+            System.out.println("Erreur de lecture.");
+            System.exit(1);
+        }
+        return texte;
+    }
+
+    static String[][] niveaux = {
+        {
+            "########",
+            "#      #",
+            "#  .   #",
+            "#  $   #",
+            "#  @   #",
+            "#      #",
+            "########"
+        },
+        {
+            "#########",
+            "#       #",
+            "# .  $  #",
+            "# .  $  #",
+            "#   @   #",
+            "#########"
+        },
+        {
+            "#########",
+            "#   .   #",
+            "#   $   #",
+            "# .$@$. #",
+            "#       #",
+            "#########"
+        }
+    };
+
+    static void chargerNiveau(int numero) {
+        String[] niveau = niveaux[numero];
+        int nbLignes = niveau.length;
+        int nbColonnes = niveau[0].length();
+
+        grille = new char[nbLignes][nbColonnes];
+        objectifs = new boolean[nbLignes][nbColonnes];
+        nbMouvements = 0;
+
+        for (int l = 0; l < nbLignes; l++) {
+            for (int c = 0; c < nbColonnes; c++) {
+                char caractere = niveau[l].charAt(c);
+
+                if (caractere == '#') {
+                    grille[l][c] = '#';
+                } else if (caractere == '@') {
+                    grille[l][c] = '@';
+                    ligneJoueur = l;
+                    colonneJoueur = c;
+                } else if (caractere == '$') {
+                    grille[l][c] = '$';
+                } else if (caractere == '.') {
+                    grille[l][c] = ' ';
+                    objectifs[l][c] = true;
+                } else if (caractere == '*') {
+                    grille[l][c] = '$';
+                    objectifs[l][c] = true;
+                } else {
+                    grille[l][c] = ' ';
+                }
+            }
+        }
+    }
+
+    static void afficherGrille() {
+        System.out.println();
+        for (int l = 0; l < grille.length; l++) {
+            for (int c = 0; c < grille[l].length; c++) {
+                char contenu = grille[l][c];
+
+                if (contenu == '$' && objectifs[l][c]) {
+                    System.out.print('*');
+                } else if (contenu == ' ' && objectifs[l][c]) {
+                    System.out.print('.');
+                } else {
+                    System.out.print(contenu);
+                }
+            }
+            System.out.println();
+        }
+        System.out.println();
+        System.out.println("Mouvements : " + nbMouvements);
+    }
+
+    static boolean deplacementValide(int ligne, int colonne) {
+        if (ligne < 0 || ligne >= grille.length) {
+            return false;
+        }
+        if (colonne < 0 || colonne >= grille[0].length) {
+            return false;
+        }
+        if (grille[ligne][colonne] == '#') {
+            return false;
+        }
+        return true;
+    }
+
+    static boolean peutPousser(int ligne, int colonne, int dLigne, int dColonne) {
+        int ligneDerriere = ligne + dLigne;
+        int colonneDerriere = colonne + dColonne;
+
+        if (!deplacementValide(ligneDerriere, colonneDerriere)) {
+            return false;
+        }
+        if (grille[ligneDerriere][colonneDerriere] == '$') {
+            return false;
+        }
+        return true;
+    }
+
+    static void deplacerCaisse(int ligne, int colonne, int dLigne, int dColonne) {
+        grille[ligne][colonne] = ' ';
+        grille[ligne + dLigne][colonne + dColonne] = '$';
+    }
+
+    static boolean deplacerJoueur(int dLigne, int dColonne) {
+        int nouvelleLigne = ligneJoueur + dLigne;
+        int nouvelleColonne = colonneJoueur + dColonne;
+
+        if (!deplacementValide(nouvelleLigne, nouvelleColonne)) {
+            return false;
+        }
+
+        if (grille[nouvelleLigne][nouvelleColonne] == '$') {
+            if (!peutPousser(nouvelleLigne, nouvelleColonne, dLigne, dColonne)) {
+                return false;
+            }
+            deplacerCaisse(nouvelleLigne, nouvelleColonne, dLigne, dColonne);
+        }
+
+        grille[ligneJoueur][colonneJoueur] = ' ';
+        grille[nouvelleLigne][nouvelleColonne] = '@';
+        ligneJoueur = nouvelleLigne;
+        colonneJoueur = nouvelleColonne;
+        nbMouvements++;
+        return true;
+    }
+
+    static boolean partieTerminee() {
+        for (int l = 0; l < grille.length; l++) {
+            for (int c = 0; c < grille[l].length; c++) {
+                if (objectifs[l][c] && grille[l][c] != '$') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    static void jouer(int numero) {
+        chargerNiveau(numero);
+
+        boolean quitter = false;
+
+        while (!quitter && !partieTerminee()) {
+            afficherGrille();
+            System.out.print("Commande (z=haut, s=bas, q=gauche, d=droite, x=quitter) : ");
+            String saisie = lireLigne().trim().toLowerCase();
+
+            if (saisie.length() != 1) {
+                System.out.println("Commande invalide ! Tapez une seule lettre.");
+            } else {
+                char commande = saisie.charAt(0);
+
+                if (commande == 'z') {
+                    if (!deplacerJoueur(-1, 0)) {
+                        System.out.println("Deplacement impossible !");
+                    }
+                } else if (commande == 's') {
+                    if (!deplacerJoueur(1, 0)) {
+                        System.out.println("Deplacement impossible !");
+                    }
+                } else if (commande == 'q') {
+                    if (!deplacerJoueur(0, -1)) {
+                        System.out.println("Deplacement impossible !");
+                    }
+                } else if (commande == 'd') {
+                    if (!deplacerJoueur(0, 1)) {
+                        System.out.println("Deplacement impossible !");
+                    }
+                } else if (commande == 'x') {
+                    quitter = true;
+                    System.out.println("Vous avez quitte le niveau.");
+                } else {
+                    System.out.println("Commande invalide ! Utilisez z, s, q, d ou x.");
+                }
+            }
+        }
+
+        if (partieTerminee()) {
+            afficherGrille();
+            System.out.println("Victoire !");
+            System.out.println("Nombre de mouvements : " + nbMouvements);
+        }
+    }
+
+    static int lireEntier() {
+        String texte = lireLigne().trim();
+        if (texte.length() == 0) {
+            return -1;
+        }
+        for (int i = 0; i < texte.length(); i++) {
+            if (texte.charAt(i) < '0' || texte.charAt(i) > '9') {
+                return -1;
+            }
+        }
+        return Integer.parseInt(texte);
+    }
+
+    static void afficherRegles() {
+        System.out.println();
+        System.out.println("=== REGLES ===");
+        System.out.println("- Deplacez-vous avec z (haut), s (bas), q (gauche), d (droite).");
+        System.out.println("- Poussez les caisses ($) sur les objectifs (.).");
+        System.out.println("- Une caisse ne peut etre que poussee, jamais tiree.");
+        System.out.println("- Vous ne pouvez pas traverser un mur (#).");
+        System.out.println("- Une caisse ne se pousse que si la case derriere est libre.");
+        System.out.println("- Une caisse sur un objectif s'affiche *.");
+    }
+
+    static void choisirNiveau() {
+        System.out.println();
+        System.out.println("===== CHOIX DU NIVEAU =====");
+        for (int i = 0; i < niveaux.length; i++) {
+            System.out.println((i + 1) + ". Niveau " + (i + 1));
+        }
+        System.out.print("Votre choix : ");
+        int choix = lireEntier();
+
+        if (choix >= 1 && choix <= niveaux.length) {
+            jouer(choix - 1);
+        } else {
+            System.out.println("Niveau inexistant !");
+        }
+    }
+
+    public static void main(String[] args) {
+        boolean continuer = true;
+
+        while (continuer) {
+            System.out.println();
+            System.out.println("================================");
+            System.out.println("         SOKOBAN JAVA");
+            System.out.println("================================");
+            System.out.println("1. Nouvelle partie (niveau 1)");
+            System.out.println("2. Choisir un niveau");
+            System.out.println("3. Afficher les regles");
+            System.out.println("4. Quitter");
+            System.out.println();
+            System.out.print("Votre choix : ");
+
+            int choix = lireEntier();
+
+            if (choix == 1) {
+                jouer(0);
+            } else if (choix == 2) {
+                choisirNiveau();
+            } else if (choix == 3) {
+                afficherRegles();
+            } else if (choix == 4) {
+                continuer = false;
+                System.out.println("Au revoir !");
+            } else {
+                System.out.println("Choix invalide !");
+            }
+        }
+    }
+}
