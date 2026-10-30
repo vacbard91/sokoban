@@ -1,11 +1,12 @@
 public class Sokoban {
-
+ 
     static char[][] grille;
     static boolean[][] objectifs;
     static int ligneJoueur;
     static int colonneJoueur;
     static int nbMouvements;
-
+ 
+    // Lit une ligne au clavier sans Scanner
     static String lireLigne() {
         String texte = "";
         try {
@@ -25,7 +26,7 @@ public class Sokoban {
         }
         return texte;
     }
-
+ 
     static String[][] niveaux = {
         {
             "########",
@@ -53,20 +54,20 @@ public class Sokoban {
             "#########"
         }
     };
-
+ 
     static void chargerNiveau(int numero) {
         String[] niveau = niveaux[numero];
         int nbLignes = niveau.length;
         int nbColonnes = niveau[0].length();
-
+ 
         grille = new char[nbLignes][nbColonnes];
         objectifs = new boolean[nbLignes][nbColonnes];
         nbMouvements = 0;
-
+ 
         for (int l = 0; l < nbLignes; l++) {
             for (int c = 0; c < nbColonnes; c++) {
                 char caractere = niveau[l].charAt(c);
-
+ 
                 if (caractere == '#') {
                     grille[l][c] = '#';
                 } else if (caractere == '@') {
@@ -87,13 +88,13 @@ public class Sokoban {
             }
         }
     }
-
+ 
     static void afficherGrille() {
         System.out.println();
         for (int l = 0; l < grille.length; l++) {
             for (int c = 0; c < grille[l].length; c++) {
                 char contenu = grille[l][c];
-
+ 
                 if (contenu == '$' && objectifs[l][c]) {
                     System.out.print('*');
                 } else if (contenu == ' ' && objectifs[l][c]) {
@@ -107,7 +108,7 @@ public class Sokoban {
         System.out.println();
         System.out.println("Mouvements : " + nbMouvements);
     }
-
+ 
     static boolean deplacementValide(int ligne, int colonne) {
         if (ligne < 0 || ligne >= grille.length) {
             return false;
@@ -120,11 +121,11 @@ public class Sokoban {
         }
         return true;
     }
-
+ 
     static boolean peutPousser(int ligne, int colonne, int dLigne, int dColonne) {
         int ligneDerriere = ligne + dLigne;
         int colonneDerriere = colonne + dColonne;
-
+ 
         if (!deplacementValide(ligneDerriere, colonneDerriere)) {
             return false;
         }
@@ -133,27 +134,27 @@ public class Sokoban {
         }
         return true;
     }
-
+ 
     static void deplacerCaisse(int ligne, int colonne, int dLigne, int dColonne) {
         grille[ligne][colonne] = ' ';
         grille[ligne + dLigne][colonne + dColonne] = '$';
     }
-
+ 
     static boolean deplacerJoueur(int dLigne, int dColonne) {
         int nouvelleLigne = ligneJoueur + dLigne;
         int nouvelleColonne = colonneJoueur + dColonne;
-
+ 
         if (!deplacementValide(nouvelleLigne, nouvelleColonne)) {
             return false;
         }
-
+ 
         if (grille[nouvelleLigne][nouvelleColonne] == '$') {
             if (!peutPousser(nouvelleLigne, nouvelleColonne, dLigne, dColonne)) {
                 return false;
             }
             deplacerCaisse(nouvelleLigne, nouvelleColonne, dLigne, dColonne);
         }
-
+ 
         grille[ligneJoueur][colonneJoueur] = ' ';
         grille[nouvelleLigne][nouvelleColonne] = '@';
         ligneJoueur = nouvelleLigne;
@@ -161,7 +162,7 @@ public class Sokoban {
         nbMouvements++;
         return true;
     }
-
+ 
     static boolean partieTerminee() {
         for (int l = 0; l < grille.length; l++) {
             for (int c = 0; c < grille[l].length; c++) {
@@ -172,22 +173,22 @@ public class Sokoban {
         }
         return true;
     }
-
+ 
     static void jouer(int numero) {
         chargerNiveau(numero);
-
+ 
         boolean quitter = false;
-
+ 
         while (!quitter && !partieTerminee()) {
             afficherGrille();
             System.out.print("Commande (z=haut, s=bas, q=gauche, d=droite, x=quitter) : ");
             String saisie = lireLigne().trim().toLowerCase();
-
+ 
             if (saisie.length() != 1) {
                 System.out.println("Commande invalide ! Tapez une seule lettre.");
             } else {
                 char commande = saisie.charAt(0);
-
+ 
                 if (commande == 'z') {
                     if (!deplacerJoueur(-1, 0)) {
                         System.out.println("Deplacement impossible !");
@@ -212,14 +213,15 @@ public class Sokoban {
                 }
             }
         }
-
+ 
         if (partieTerminee()) {
             afficherGrille();
             System.out.println("Victoire !");
             System.out.println("Nombre de mouvements : " + nbMouvements);
         }
     }
-
+ 
+    // Retourne -1 si l'entree n'est pas un nombre
     static int lireEntier() {
         String texte = lireLigne().trim();
         if (texte.length() == 0) {
@@ -232,7 +234,7 @@ public class Sokoban {
         }
         return Integer.parseInt(texte);
     }
-
+ 
     static void afficherRegles() {
         System.out.println();
         System.out.println("=== REGLES ===");
@@ -243,7 +245,7 @@ public class Sokoban {
         System.out.println("- Une caisse ne se pousse que si la case derriere est libre.");
         System.out.println("- Une caisse sur un objectif s'affiche *.");
     }
-
+ 
     static void choisirNiveau() {
         System.out.println();
         System.out.println("===== CHOIX DU NIVEAU =====");
@@ -252,17 +254,17 @@ public class Sokoban {
         }
         System.out.print("Votre choix : ");
         int choix = lireEntier();
-
+ 
         if (choix >= 1 && choix <= niveaux.length) {
             jouer(choix - 1);
         } else {
             System.out.println("Niveau inexistant !");
         }
     }
-
+ 
     public static void main(String[] args) {
         boolean continuer = true;
-
+ 
         while (continuer) {
             System.out.println();
             System.out.println("================================");
@@ -274,9 +276,9 @@ public class Sokoban {
             System.out.println("4. Quitter");
             System.out.println();
             System.out.print("Votre choix : ");
-
+ 
             int choix = lireEntier();
-
+ 
             if (choix == 1) {
                 jouer(0);
             } else if (choix == 2) {
@@ -292,3 +294,4 @@ public class Sokoban {
         }
     }
 }
+ 
